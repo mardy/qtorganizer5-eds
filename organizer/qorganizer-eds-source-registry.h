@@ -101,6 +101,12 @@ private:
     static void onSourceChanged(ESourceRegistry *registry,
                                 ESource *source,
                                 SourceRegistry *self);
+    static void onSourceNotify(ESource *source,
+                               GParamSpec *pspec,
+                               SourceRegistry *self);
+    static void onClientNotify(EClient *client,
+                               GParamSpec *pspec,
+                               SourceRegistry *self);
     static void onSourceRemoved(ESourceRegistry *registry,
                                 ESource *source,
                                 SourceRegistry *self);

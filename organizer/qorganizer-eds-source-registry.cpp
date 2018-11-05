@@ -216,6 +216,10 @@ EClient* SourceRegistry::client(const QByteArray &sourceId)
                 qWarning() << "Fail to connect with client" << gError->message;
                 g_error_free(gError);
             } else {
+                g_signal_connect(client,
+                                 "notify",
+                                 (GCallback) SourceRegistry::onClientNotify,
+                                 this);
                 // If the client is read only update the collection
                 qDebug() << Q_FUNC_INFO << "client" << sourceId << "is readonly:" << e_client_is_readonly(client);
                 QOrganizerCollection &c = m_collections[sourceId];
@@ -274,6 +278,10 @@ QOrganizerCollection SourceRegistry::registerSource(ESource *source, bool isDefa
         bool isAlarms = e_source_has_extension(source, E_SOURCE_EXTENSION_ALARMS);
 
         if ( isEnabled && (isCalendar || isTaskList || isMemoList || isAlarms)) {
+            g_signal_connect(source,
+                             "notify",
+                             (GCallback) SourceRegistry::onSourceNotify,
+                             this);
             QOrganizerCollection collection = parseSource(m_managerUri, source, isDefault);
             sourceId = collection.id().localId();
 
@@ -374,6 +382,13 @@ void SourceRegistry::onSourceChanged(ESourceRegistry *registry,
                                      SourceRegistry *self)
 {
     Q_UNUSED(registry);
+    onSourceNotify(source, NULL, self);
+}
+
+void SourceRegistry::onSourceNotify(ESource *source,
+                                    GParamSpec *pspec,
+                                    SourceRegistry *self)
+{
     QByteArray sourceId = self->findSource(source);
     if (!sourceId.isEmpty() && self->m_collections.contains(sourceId)) {
         QOrganizerCollection &collection = self->m_collections[sourceId];
@@ -384,6 +399,14 @@ void SourceRegistry::onSourceChanged(ESourceRegistry *registry,
     } else {
         qWarning() << "Source changed not found";
     }
+}
+
+void SourceRegistry::onClientNotify(EClient *client,
+                                    GParamSpec *pspec,
+                                    SourceRegistry *self)
+{
+    ESource *source = e_client_get_source(client);
+    onSourceNotify(source, NULL, self);
 }
 
 void SourceRegistry::onSourceRemoved(ESourceRegistry *registry,
