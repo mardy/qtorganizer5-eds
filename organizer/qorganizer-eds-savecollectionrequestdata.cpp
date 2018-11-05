@@ -163,6 +163,7 @@ void SaveCollectionRequestData::parseCollections()
     Q_FOREACH(const QOrganizerCollection &collection, request<QOrganizerCollectionSaveRequest>()->collections()) {
         ESource *source = 0;
         bool isNew = collection.id().isNull();
+        qDebug() << "is new:" << isNew;
         if (isNew) {
             source = SourceRegistry::newSourceFromCollection(collection);
         } else {
@@ -180,6 +181,7 @@ void SaveCollectionRequestData::parseCollections()
             extCalendar = E_SOURCE_BACKEND(e_source_get_extension(source, E_SOURCE_EXTENSION_CALENDAR));
         }
 
+        qDebug() << "Calendar backend is" << extCalendar;
         if (source) {
             if (isNew) {
                 if (extCalendar) {
@@ -213,6 +215,7 @@ void SaveCollectionRequestData::parseCollections()
                 readOnly.isValid() ||
                 metadata.isValid()) {
 
+                qDebug() << "Setting ubuntu source" << readOnly;
                 ESourceUbuntu *extUbuntu = E_SOURCE_UBUNTU(e_source_get_extension(source, E_SOURCE_EXTENSION_UBUNTU));
                 e_source_ubuntu_set_writable(extUbuntu, readOnly.isValid() ? !readOnly.toBool() : true);
                 e_source_ubuntu_set_account_id(extUbuntu, accountId.toUInt());
@@ -229,4 +232,6 @@ void SaveCollectionRequestData::parseCollections()
             index++;
         }
     }
+    qDebug() << "Sources to create:" << m_sourcesToCreate.count();
+    qDebug() << "Sources to update:" << m_sourcesToUpdate.count();
 }

@@ -960,6 +960,7 @@ gboolean QOrganizerEDSEngine::saveCollectionUpdateAsyncStart(SaveCollectionReque
 
     ESource *source = data->nextSourceToUpdate();
     if (source) {
+        qDebug() << "Writing source" << source;
         e_source_write(source,
                        data->cancellable(),
                        (GAsyncReadyCallback) QOrganizerEDSEngine::saveCollectionUpdateAsynCommited,
@@ -976,6 +977,7 @@ void QOrganizerEDSEngine::saveCollectionUpdateAsynCommited(ESource *source,
 {
     GError *gError = 0;
 
+    qDebug() << "source write finished" << source;
     e_source_write_finish(source, res, &gError);
     if (gError) {
         qWarning() << "Fail to update collection" << gError->message;

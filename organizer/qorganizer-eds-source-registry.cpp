@@ -381,6 +381,7 @@ void SourceRegistry::onSourceChanged(ESourceRegistry *registry,
                                      ESource *source,
                                      SourceRegistry *self)
 {
+    qDebug() << Q_FUNC_INFO;
     Q_UNUSED(registry);
     onSourceNotify(source, NULL, self);
 }
@@ -389,6 +390,10 @@ void SourceRegistry::onSourceNotify(ESource *source,
                                     GParamSpec *pspec,
                                     SourceRegistry *self)
 {
+    qDebug() << Q_FUNC_INFO << self;
+    if (pspec) {
+        qDebug() << pspec->name;
+    }
     QByteArray sourceId = self->findSource(source);
     if (!sourceId.isEmpty() && self->m_collections.contains(sourceId)) {
         QOrganizerCollection &collection = self->m_collections[sourceId];
@@ -405,6 +410,7 @@ void SourceRegistry::onClientNotify(EClient *client,
                                     GParamSpec *pspec,
                                     SourceRegistry *self)
 {
+    qDebug() << Q_FUNC_INFO << self << pspec->name;
     ESource *source = e_client_get_source(client);
     onSourceNotify(source, NULL, self);
 }
