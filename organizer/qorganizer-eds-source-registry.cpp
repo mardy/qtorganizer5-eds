@@ -217,9 +217,13 @@ EClient* SourceRegistry::client(const QByteArray &sourceId)
                 g_error_free(gError);
             } else {
                 // If the client is read only update the collection
-                if (e_client_is_readonly(client)) {
-                    QOrganizerCollection &c = m_collections[sourceId];
-                    c.setExtendedMetaData(COLLECTION_READONLY_METADATA, true);
+                qDebug() << Q_FUNC_INFO << "client" << sourceId << "is readonly:" << e_client_is_readonly(client);
+                QOrganizerCollection &c = m_collections[sourceId];
+                bool syncReadonly = c.extendedMetaData(COLLECTION_SYNC_READONLY_METADATA).toBool();
+                bool wasReadonly = c.extendedMetaData(COLLECTION_READONLY_METADATA).toBool();
+                bool isReadonly = !e_source_get_writable(source) || e_client_is_readonly(client);
+                if (isReadonly != wasReadonly & !syncReadonly) {
+                    c.setExtendedMetaData(COLLECTION_READONLY_METADATA, isReadonly);
                     Q_EMIT sourceUpdated(sourceId);
                 }
                 m_clients.insert(sourceId, client);
@@ -446,17 +450,11 @@ void SourceRegistry::updateCollection(QOrganizerCollection *collection,
 
     // writable
     bool writable = e_source_get_writable(source);
-    /* For some reason the EDS we have in xenial (3.18.5) sets the "readable"
-     * property to false immediately after the object is retrieved: this can be
-     * verified by watching the "notify:readable" signal.
-     * This might be the bug recently fixed with EDS commit
-     * ff1af187f8bd608c85549aaa877cd03bcc54d7be, but in any case we cannot rely
-     * on the value of this property for the time being.
-    // the source and client need to be writable
+    qDebug() << Q_FUNC_INFO << "e-source" << collection->id().localId() << "is readonly:" << !writable;
     if (client) {
+        qDebug() << Q_FUNC_INFO << "e-client is readonly:" << e_client_is_readonly(client);
         writable = writable && !e_client_is_readonly(client);
     }
-    */
     collection->setExtendedMetaData(COLLECTION_READONLY_METADATA, !writable);
 
     // default
